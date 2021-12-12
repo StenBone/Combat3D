@@ -10,3 +10,4 @@ https://subscription.packtpub.com/book/game_development/9781838986193/1
 
 # VCPG Install Commands
 vcpkg install glfw3:x64-windows
+vcpkg install glad:x64-windows

@@ -18,17 +18,21 @@
     <None Include=".clang-tidy">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="notes.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\private\CppUtils.hpp">
+    <ClInclude Include="src\public\Constants.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\public\CppUtils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\public\Main.cpp">
+    <ClCompile Include="src\private\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
