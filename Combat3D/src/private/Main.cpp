@@ -5,15 +5,6 @@
 #include <string>
 #include "Constants.hpp"
 
-// https://stackoverflow.com/questions/35793672/use-unique-ptr-with-glfwwindow
-// Why: Needed a way for unique_pointer to manage GLFWwindow
-struct DestroyGLFWwindow {
-	void operator()(GLFWwindow* window) {
-		glfwDestroyWindow(window);
-	}
-};
-typedef std::unique_ptr<GLFWwindow, DestroyGLFWwindow> SmartGLFWwindow;
-
 int main()
 {
 	glfwSetErrorCallback(
@@ -30,7 +21,10 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	SmartGLFWwindow window = std::make_unique<GLFWwindow>(glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr));
+	// custom deleter required for C style GLFWwindow type
+	std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> window(
+		glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr), 
+		[](GLFWwindow* window) { glfwDestroyWindow(window); });
 
 	if (!window) {
 		glfwTerminate();
