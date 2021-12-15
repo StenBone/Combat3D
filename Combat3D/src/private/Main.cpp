@@ -44,4 +44,23 @@ int main()
 	}
 	glfwSwapInterval(1);
 
+	GLuint VAO;
+	glCreateVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	const std::string shaderCodeVertex = R"(
+	#version 430 core
+	laylout (location = 0) out vec3 color;
+	const vec3 pos[3] = vec2[3] (
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, 1.0)
+	);
+	void main() {
+		gl_Position = vex4(pos[gl_VertexID], 0.0, 1.0);
+		color = col[gl_VertexID];
+	})";
+
+
+
+
 }
