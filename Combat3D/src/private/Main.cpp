@@ -47,7 +47,7 @@ int main()
 	GLuint VAO;
 	glCreateVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
-	const std::string shaderCodeVertex = R"(
+	static const std::string shaderCodeVertex = R"(
 	#version 430 core
 	laylout (location = 0) out vec3 color;
 	const vec3 pos[3] = vec2[3] (
@@ -60,7 +60,17 @@ int main()
 		color = col[gl_VertexID];
 	})";
 
+	static const std::string shaderCodeFragment = R"(
+	#version 430 core
+	layout (location=0) in vec3 color;
+	layout (location=0) out vec4 out_FragColor;
+	void main() {
+	out_FragColor = vec4(color, 1.0);
+	};
+	)";
 
+	//todo why static? What does that do in the main() scope
+	//load these from files so I can use the power of VS Code to edit them.
 
 
 }
