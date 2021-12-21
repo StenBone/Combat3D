@@ -5,6 +5,34 @@
 #include <string>
 #include "Constants.hpp"
 
+
+static const char* shaderCodeVertex = R"(
+	#version 430 core
+	laylout (location = 0) out vec3 color;
+	const vec2 pos[3] = vec2[3](
+		vec2(-0.6, -0.4),
+		vec2(0.6, -0.4),
+		vec2(0.0, 0.6)
+	);
+	const vec3 col[3] = vec3[3] (
+		vec3(1.0, 0.0, 0.0),
+		vec3(0.0, 1.0, 0.0),
+		vec3(0.0, 0.0, 1.0)
+	);
+	void main() {
+		gl_Position = vex4(pos[gl_VertexID], 0.0, 1.0);
+		color = col[gl_VertexID];
+	})";
+
+static const char* shaderCodeFragment = R"(
+	#version 430 core
+	layout (location=0) in vec3 color;
+	layout (location=0) out vec4 out_FragColor;
+	void main() {
+	out_FragColor = vec4(color, 1.0);
+	};
+	)";
+
 int main()
 {
 	glfwSetErrorCallback(
@@ -20,57 +48,73 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	/**
 	// custom deleter required for C style GLFWwindow type
 	std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> window(
 		glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr), 
 		[](GLFWwindow* window) { glfwDestroyWindow(window); });
-
+	*/
+	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr);
 	if (!window) {
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
 
-	glfwSetKeyCallback(window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
 	});
 
-	glfwMakeContextCurrent(window.get());
+	glfwMakeContextCurrent(window);
+	//gladLoadGL(glfwGetProcAddress);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
 	glfwSwapInterval(1);
 
-	GLuint VAO;
-	glCreateVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-	static const std::string shaderCodeVertex = R"(
-	#version 430 core
-	laylout (location = 0) out vec3 color;
-	const vec3 pos[3] = vec2[3] (
-		vec3(1.0, 0.0, 0.0),
-		vec3(0.0, 1.0, 0.0),
-		vec3(0.0, 0.0, 1.0)
-	);
-	void main() {
-		gl_Position = vex4(pos[gl_VertexID], 0.0, 1.0);
-		color = col[gl_VertexID];
-	})";
+	const GLuint shaderVertex = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(shaderVertex, 1, &shaderCodeVertex, nullptr);
+	glCompileShader(shaderVertex);
 
-	static const std::string shaderCodeFragment = R"(
-	#version 430 core
-	layout (location=0) in vec3 color;
-	layout (location=0) out vec4 out_FragColor;
-	void main() {
-	out_FragColor = vec4(color, 1.0);
-	};
-	)";
+	const GLuint shaderFragment = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(shaderFragment, 1, &shaderCodeFragment, nullptr);
+	glCompileShader(shaderFragment);
 
-	//todo why static? What does that do in the main() scope
-	//load these from files so I can use the power of VS Code to edit them.
+	const GLuint program = glCreateProgram();
+	glAttachShader(program, shaderVertex);
+	glAttachShader(program, shaderFragment);
 
+	glLinkProgram(program);
+	glUseProgram(program);
 
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glClearColor(1.f, 1.f, 1.f, 1.f);
+
+	// game loop
+	while (!glfwWindowShouldClose(window)) {
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		glViewport(0, 0, width, height); // resize window
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	glDeleteProgram(program);
+	glDeleteShader(shaderFragment);
+	glDeleteShader(shaderVertex);
+	glDeleteVertexArrays(1, &vao);
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	
+	return EXIT_SUCCESS;
 }
