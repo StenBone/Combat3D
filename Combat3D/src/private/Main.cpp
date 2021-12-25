@@ -8,7 +8,7 @@
 
 static const char* shaderCodeVertex = R"(
 	#version 430 core
-	laylout (location = 0) out vec3 color;
+	layout (location = 0) out vec3 color;
 	const vec2 pos[3] = vec2[3](
 		vec2(-0.6, -0.4),
 		vec2(0.6, -0.4),
@@ -20,7 +20,7 @@ static const char* shaderCodeVertex = R"(
 		vec3(0.0, 0.0, 1.0)
 	);
 	void main() {
-		gl_Position = vex4(pos[gl_VertexID], 0.0, 1.0);
+		gl_Position = vec4(pos[gl_VertexID], 0.0, 1.0);
 		color = col[gl_VertexID];
 	})";
 
@@ -66,12 +66,8 @@ int main()
 		}
 	});
 
-	glfwMakeContextCurrent(window);
-	//gladLoadGL(glfwGetProcAddress);
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
+	glfwMakeContextCurrent(window); 
+	gladLoadGL();
 	glfwSwapInterval(1);
 
 	const GLuint shaderVertex = glCreateShader(GL_VERTEX_SHADER);
@@ -90,7 +86,7 @@ int main()
 	glUseProgram(program);
 
 	GLuint vao;
-	glGenVertexArrays(1, &vao);
+	glad_glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	glClearColor(1.f, 1.f, 1.f, 1.f);
