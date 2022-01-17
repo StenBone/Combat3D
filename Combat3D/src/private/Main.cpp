@@ -1,10 +1,9 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <SFML/Graphics.hpp>
+#include <GL/glew.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include "Constants.hpp"
-
 
 static const char* shaderCodeVertex = R"(
 	#version 430 core
@@ -35,40 +34,22 @@ static const char* shaderCodeFragment = R"(
 
 int main()
 {
-	glfwSetErrorCallback(
-		[](int error, const char* description) {
-			std::cerr << "Error: " << error << description << std::endl;
-		}
-	);
+	sf::ContextSettings settings;
+	settings.depthBits = 24;
+	settings.stencilBits = 8;
+	settings.majorVersion = OPENGL_VERSION_MAJOR;
+	settings.minorVersion = OPENGL_VERSION_MINOR;
+	settings.attributeFlags = sf::ContextSettings::Core;
+	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE,
+		sf::Style::Titlebar | sf::Style::Close, settings);
 
-	if (!glfwInit()) {
-		exit(EXIT_FAILURE);
+	glewExperimental = GL_TRUE;
+	auto err = glewInit();
+	if (err != GLEW_OK) {
+		// error intializing GLEW
+		std::cerr << "Failure to initialize GLEW: " << glewGetErrorString(err);
+		return EXIT_FAILURE;
 	}
-
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_VERSION_MAJOR);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_VERSION_MINOR);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	/**
-	// custom deleter required for C style GLFWwindow type
-	std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> window(
-		glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr), 
-		[](GLFWwindow* window) { glfwDestroyWindow(window); });
-	*/
-	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE.c_str(), nullptr, nullptr);
-	if (!window) {
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
-
-	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-		}
-	});
-
-	glfwMakeContextCurrent(window); 
-	gladLoadGL();
-	glfwSwapInterval(1);
 
 	const GLuint shaderVertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(shaderVertex, 1, &shaderCodeVertex, nullptr);
@@ -86,31 +67,32 @@ int main()
 	glUseProgram(program);
 
 	GLuint vao;
-	glad_glGenVertexArrays(1, &vao);
+	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	glClearColor(1.f, 1.f, 1.f, 1.f);
 
 	// game loop
-	while (!glfwWindowShouldClose(window)) {
-		int width, height;
-		glfwGetFramebufferSize(window, &width, &height);
-		glViewport(0, 0, width, height); // resize window
+	while (window.isOpen()) {
+
+		sf::Event event;
+		while(window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed) {
+				window.close();
+				return EXIT_SUCCESS;
+			}
+		}
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		window.display();
 	}
 
 	glDeleteProgram(program);
 	glDeleteShader(shaderFragment);
 	glDeleteShader(shaderVertex);
 	glDeleteVertexArrays(1, &vao);
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
 	
 	return EXIT_SUCCESS;
 }
